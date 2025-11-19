@@ -68,7 +68,7 @@ TABLES["books"] = (
     "synopsis TEXT NOT NULL,"
     "price_buy decimal(10,2) NOT NULL,"
     "price_rent decimal(10,2) NOT NULL,"
-    "created_at timestamp NOT NULL,"
+    "created_at timestamp," # NOTE: This can be null
     "PRIMARY KEY (book_id)"
     ") ENGINE=InnoDB"
 )
