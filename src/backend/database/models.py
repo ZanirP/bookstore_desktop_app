@@ -52,7 +52,7 @@ class Book(db.Model):
     synopsis = db.Column(db.Text, nullable=False)
     price_buy = db.Column(db.Numeric(10, 2), nullable=False)
     price_rent = db.Column(db.Numeric(10, 2), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=True, default=datetime.UTC)
+    created_at = db.Column(db.DateTime, nullable=True, default=datetime.now)
 
     reviews = db.relationship("Review", back_populates="book", cascade="all,delete")
     order_items = db.relationship("OrderItem", back_populates="book", cascade="all,delete")
