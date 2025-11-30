@@ -11,6 +11,9 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
+    from backend.auth.routes_auth import auth_bp
     from backend.database import models
+
+    app.register_blueprint(auth_bp, url_prefix='/auth')
 
     return app
