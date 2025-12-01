@@ -11,9 +11,15 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from backend.auth.routes_auth import auth_bp
     from backend.database import models
 
+    from backend.auth.routes_auth import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth')
+
+    from backend.books.routes_books import books_bp
+    app.register_blueprint(books_bp, url_prefix='/books')
+
+    from backend.orders.routes_orders import orders_bp
+    app.register_blueprint(orders_bp, url_prefix="/orders")
 
     return app

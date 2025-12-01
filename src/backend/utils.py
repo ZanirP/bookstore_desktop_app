@@ -2,7 +2,7 @@ import secrets
 from flask import request, jsonify
 from functools import wraps
 from backend.database.models import Account, Session
-from backend.database.db import db
+from backend.database import db
 import bcrypt
 
 def generate_token():
@@ -51,3 +51,31 @@ def require_role(role):
         return wrapper
 
     return decorator
+
+def get_account_from_header():
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None
+
+    parts = auth_header.split(" ")
+    token = parts[1]
+    session = Session.query.filter_by(token=token).first()
+
+    if not session:
+        return None
+
+    account = Account.query.filter_by(account_id=session.account_id).first()
+    return account
+
+
+def require_account():
+    account = get_account_from_request()
+    if not account:
+        return None, {"error": "Unauthorized"}, 401
+    return account, None, None
+
+def require_manager():
+    account = get_account_from_header()
+    if not account or account.role != "manager":
+        return None, {"error": "Forbidden"}, 403
+    return account, None, None
