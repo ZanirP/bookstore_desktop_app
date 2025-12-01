@@ -1,8 +1,8 @@
-from PyQt5 import QObject, QRunnable, pyqtSignal
+from PyQt5.QtCore import QObject, QRunnable, pyqtSignal
 
 class WorkerSignals(QObject):
     finished = pyqtSignal(object)
-    error = pyqtSignal(str)
+    error = pyqtSignal(object)
 
 
 class Worker(QRunnable):
@@ -17,6 +17,6 @@ class Worker(QRunnable):
     def run(self):
         try:
             result = self.func(*self.args, **self.kwargs)
-            self.signals.error.emit(result)
+            self.signals.finished.emit(result)
         except Exception as e:
             self.signals.error.emit(str(e))

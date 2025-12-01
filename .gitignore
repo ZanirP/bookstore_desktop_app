@@ -1,3 +1,5 @@
 /.venv
 /.idea
 .env
+win_env
+src/migrations
