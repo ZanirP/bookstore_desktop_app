@@ -17,27 +17,49 @@ def create_order():
         return {"error": "Missing items"}, 400
 
     items = data["items"]
-    payment_status = data.get("payment_status", "paid")
+
+    total_cost = 0
+    order_items_to_create = []
+
+    for item in items:
+        book_id = item.get("book_id")
+        action = item.get("action", "buy")
+
+        book = Book.query.get(book_id)
+        if not book:
+            return {"error": f"Book {book_id} not found"}, 404
+
+        price = book.price_rent if action == "rent" else book.price_buy
+        total_cost += price
+
+        order_items_to_create.append({
+            "book_id": book_id,
+            "price": price
+        })
 
     order = Order(
         account_id=account.account_id,
-        total_cost=sum(item["price"] for item in items),
-        payment_status=payment_status
+        total_cost=total_cost,
+        payment_status="unpaid"
     )
     db.session.add(order)
-    db.session.commit()  # order_id is created here
+    db.session.commit()
 
-    for item in items:
+    for oi in order_items_to_create:
         order_item = OrderItem(
             order_id=order.order_id,
-            book_id=item["book_id"],
-            item_price=item["price"]
+            book_id=oi["book_id"],
+            item_price=oi["price"]
         )
         db.session.add(order_item)
 
     db.session.commit()
 
-    return {"message": "Order created", "order_id": order.order_id}, 201
+    return {
+        "message": "Order created",
+        "order_id": order.order_id
+    }, 201
+
 
 
 @orders_bp.get("/my_orders")

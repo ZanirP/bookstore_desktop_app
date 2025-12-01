@@ -1,5 +1,4 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
-from PyQt5.QtCore import QThreadPool
 
 from api_client import api
 from worker import Worker
@@ -10,7 +9,7 @@ class LoginPage(QWidget):
     def __init__(self, main_window):
         super().__init__()
         self.main_window = main_window
-        self.pool = QThreadPool().globalInstance()
+        self.pool = main_window.pool
 
         layout = QVBoxLayout()
         self.title = QLabel("Login")
@@ -50,7 +49,6 @@ class LoginPage(QWidget):
         worker = Worker(api.login, username, password)
         worker.signals.finished.connect(self.finished_clicked)
         worker.signals.error.connect(self.error_clicked)
-
         self.pool.start(worker)
 
 

@@ -51,6 +51,50 @@ def get_book_information(id):
     }
     return jsonify(result)
 
+@books_bp.get("/search")
+def search_books():
+    query = request.args.get("q", "").strip()
+
+    if not query:
+        return jsonify({"error": "Missing query parameter"}), 400
+    q = f"%{query}%"
+    title_matches = Book.query.filter(Book.title.ilike(q)).all()
+
+    author_matches = (
+        Book.query.filter(Book.author.ilike(q))
+        .filter(~Book.book_id.in_([b.book_id for b in title_matches]))
+        .all()
+    )
+    genre_rows = Genre.query.filter(Genre.name.ilike(q)).all()
+    genre_ids = [g.genre_id for g in genre_rows]
+
+    if genre_ids:
+        genre_matches = (
+            Book.query.join(Book.genres)
+            .filter(Genre.genre_id.in_(genre_ids))
+            .filter(~Book.book_id.in_([b.book_id for b in title_matches]))
+            .filter(~Book.book_id.in_([b.book_id for b in author_matches]))
+            .all()
+        )
+    else:
+        genre_matches = []
+
+    results = title_matches + author_matches + genre_matches
+
+    output = []
+    for b in results:
+        output.append({
+            "id": b.book_id,
+            "title": b.title,
+            "author": b.author,
+            "price_buy": b.price_buy,
+            "price_rent": b.price_rent,
+            "synopsis": b.synopsis,
+        })
+
+    return jsonify(output)
+
+
 @books_bp.get("/genres")
 def list_genres():
     genres = Genre.query.all()
