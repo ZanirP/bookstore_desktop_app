@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem
-from worker import Worker
+from frontend.worker import Worker
 
 class CartDialog(QDialog):
 

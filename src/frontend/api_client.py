@@ -44,4 +44,33 @@ class APIClient:
         url = self.base_url + f"/books/{book_id}/reviews"
         return requests.get(url, headers=self._auth_header()).json()
 
+    def get_all_orders(self):
+        url = self.base_url + "/orders/all"
+        return requests.get(url, headers=self._auth_header()).json()
+
+    def update_order_status(self, order_id, status):
+        url = self.base_url + f"/orders/{order_id}/status"
+        return requests.patch(url, json={"payment_status": status}, headers=self._auth_header()).json()
+
+    def add_book(self, data):
+        url = self.base_url + "/books"
+        return requests.post(url, json=data, headers=self._auth_header()).json()
+
+    def update_book(self, book_id, data):
+        url = self.base_url + f"/books/{book_id}"
+        return requests.patch(url, json=data, headers=self._auth_header()).json()
+
+    def register(self, username, password, email):
+        url = self.base_url + "/auth/register"
+        return requests.post(url, json={
+            "username": username,
+            "password": password,
+            "email": email
+        }).json()
+
+    def logout(self):
+        url = self.base_url + "/auth/logout"
+        return requests.post(url, headers=self._auth_header()).json()
+
+
 api = APIClient()

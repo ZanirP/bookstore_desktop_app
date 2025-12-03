@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from backend.database import db
 from backend.database.models import Order, OrderItem, Book
-from backend.utils import get_account_from_header
+from backend.utils import get_account_from_header, require_account, require_manager, send_email
 
 orders_bp = Blueprint("orders", __name__)
 
@@ -54,6 +54,20 @@ def create_order():
         db.session.add(order_item)
 
     db.session.commit()
+
+    body = "Thank you for your order!\n\n"
+    body += f"Order ID: {order.order_id}\n"
+    body += f"Total Cost: ${order.total_cost}\n"
+    body += f"Payment Status: {order.payment_status}\n\n"
+    body += "Items:\n"
+    for item in order_items_to_create:
+        body += f"  - Book ID {item['book_id']}, Price: ${item['price']}\n"
+
+    send_email(
+        to=account.email,
+        subject="Your Bookstore Receipt",
+        body=body
+    )
 
     return {
         "message": "Order created",
@@ -114,3 +128,44 @@ def get_order(order_id):
         "created_at": order.created_at.isoformat(),
         "items": item_list
     })
+
+
+@orders_bp.get("/all")
+def get_all_orders():
+    account, err, code = require_manager()
+    if err:
+        return err, code
+
+    orders = Order.query.all()
+    output = []
+
+    for order in orders:
+        output.append({
+            "order_id": order.order_id,
+            "account_id": order.account_id,
+            "total_cost": float(order.total_cost),
+            "payment_status": order.payment_status,
+            "created_at": order.created_at.isoformat()
+        })
+    return jsonify(output)
+
+@orders_bp.patch("/<int:order_id>/status")
+def update_order_status(order_id):
+    account, err, code = require_manager()
+    if err:
+        return err, code
+
+    order = Order.query.get(order_id)
+    if not order:
+        return {"error": "Order not found"}, 404
+
+    data = request.json or {}
+    new_status = data.get("payment_status")
+
+    if not new_status:
+        return {"error": "Missing payment_status"}, 400
+
+    order.payment_status = new_status
+    db.session.commit()
+
+    return {"message": "Order status updated"}

@@ -151,7 +151,7 @@ def create_reviews(id):
 
     return {"message": "Review added successfully"}, 201
 
-@books_bp.post("/add")
+@books_bp.post("/")
 def add_book():
     account, err, code = require_manager()
     if err:
@@ -165,7 +165,7 @@ def add_book():
         title=data.get("title"),
         author=data.get("author"),
         synopsis=data.get("synopsis"),
-        price=data.get("price_buy"),
+        price_buy=data.get("price_buy"),
         price_rent=data.get("price_rent"),
         created_at=datetime.now(),
     )
@@ -173,4 +173,28 @@ def add_book():
     db.session.add(book)
     db.session.commit()
 
-    return {"message": "Book added successfully"}, 201
+    return {"message": "Book added successfully", "book_id": book.book_id}, 201
+
+
+@books_bp.patch("/<int:book_id>")
+def update_book(book_id):
+    account, err, code = require_manager()
+    if err:
+        return err, code
+
+    book = Book.query.get(book_id)
+    if not book:
+        return {"error": "Book not found"}, 404
+
+    data = request.json or {}
+
+    book.title = data.get("title", book.title)
+    book.author = data.get("author", book.author)
+    book.synopsis = data.get("synopsis", book.synopsis)
+    book.price_buy = data.get("price_buy", book.price_buy)
+    book.price_rent = data.get("price_rent", book.price_rent)
+
+    db.session.commit()
+
+    return {"message": "Book updated"}
+

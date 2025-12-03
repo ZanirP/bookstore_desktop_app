@@ -5,6 +5,35 @@ from backend.database.models import Account, Session
 from backend.database import db
 import bcrypt
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import os
+
+def send_email(to, subject, body):
+    email = os.getenv("EMAIL_USER")
+    password = os.getenv("EMAIL_PASS")
+    host = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+    port = int(os.getenv("EMAIL_PORT", 587))
+
+    msg = MIMEMultipart()
+    msg["From"] = email
+    msg["To"] = to
+    msg["Subject"] = subject
+
+    msg.attach(MIMEText(body, "plain"))
+
+    try:
+        server = smtplib.SMTP(host, port)
+        server.starttls()
+        server.login(email, password)
+        server.send_message(msg)
+        server.quit()
+        print("Email sent!")
+    except Exception as e:
+        print("EMAIL ERROR:", e)
+
+
 def generate_token():
     return secrets.token_hex(32)
 
@@ -79,3 +108,12 @@ def require_manager():
     if not account or account.role != "manager":
         return None, {"error": "Forbidden"}, 403
     return account, None, None
+
+def hash_password(password):
+    """
+    Hashes a plain-text password using bcrypt.
+    """
+    password_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password_bytes, salt)
+    return hashed_password.decode('utf-8')

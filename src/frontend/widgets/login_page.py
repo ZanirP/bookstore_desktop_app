@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
 
-from api_client import api
-from worker import Worker
+from frontend.api_client import api
+from frontend.worker import Worker
 
 
 class LoginPage(QWidget):
@@ -28,10 +28,14 @@ class LoginPage(QWidget):
         self.login_button = QPushButton("Login")
         self.login_button.clicked.connect(self.login_clicked)
 
+        self.signup_button = QPushButton("Create Account")
+        self.signup_button.clicked.connect(self.register_clicked)
+
         layout.addWidget(self.title)
         layout.addWidget(self.username_input)
         layout.addWidget(self.password_input)
         layout.addWidget(self.login_button)
+        layout.addWidget(self.signup_button)
         layout.addWidget(self.status_label)
 
         self.setLayout(layout)
@@ -69,3 +73,9 @@ class LoginPage(QWidget):
             self.main_window.go_to_manager_page()
         else:
             self.status_label.setText("Error: you are not assigned a role")
+
+    def register_clicked(self):
+        self.main_window.go_to_register_page()
+
+
+

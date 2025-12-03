@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from backend.database.models import Account, Session
 from backend.database import db
-from backend.utils import verify_password, generate_token, require_auth
+from backend.utils import verify_password, generate_token, require_auth, hash_password
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -48,3 +48,24 @@ def logout(account):
     db.session.commit()
 
     return jsonify({"message": "Logged out successfully"})
+
+@auth_bp.post("/register")
+def register():
+    data = request.json
+    username = data.get("username")
+    password = data.get("password")
+    email = data.get("email")
+
+    if not username or not password or not email:
+        return {"error": "Missing fields"}, 400
+
+    if Account.query.filter_by(username=username).first():
+        return {"error": "Username taken"}, 400
+
+    hashed = hash_password(password)
+
+    acc = Account(username=username, hashed_password=hashed, email=email, role="customer")
+    db.session.add(acc)
+    db.session.commit()
+
+    return {"message": "Account created"}, 201

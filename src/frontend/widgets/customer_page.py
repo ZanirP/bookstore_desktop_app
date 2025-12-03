@@ -2,11 +2,11 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit,
     QListWidget, QListWidgetItem
 )
-from widgets.book_details_dialog import BookDetailsDialog
-from widgets.cart_dialog import CartDialog
+from frontend.widgets.book_details_dialog import BookDetailsDialog
+from frontend.widgets.cart_dialog import CartDialog
 from PyQt5.QtCore import Qt
-from api_client import api
-from worker import Worker
+from frontend.api_client import api
+from frontend.worker import Worker
 
 
 class CustomerPage(QWidget):
@@ -48,6 +48,10 @@ class CustomerPage(QWidget):
         layout.addWidget(self.books_list)
         layout.addWidget(cart_btn)
 
+        logout_btn = QPushButton("Logout")
+        logout_btn.clicked.connect(self.logout)
+        layout.addWidget(logout_btn)
+
     def load_all_books(self):
         worker = Worker(self.api.get_all_books)
         worker.signals.finished.connect(self.populate_books)
@@ -78,5 +82,13 @@ class CustomerPage(QWidget):
     def view_cart(self):
         dlg = CartDialog(self)
         dlg.exec_()
+
+    def logout(self):
+        worker = Worker(self.api.logout)
+        worker.signals.finished.connect(lambda _: self.main_window.logout())
+        self.pool.start(worker)
+
+
+
 
 
